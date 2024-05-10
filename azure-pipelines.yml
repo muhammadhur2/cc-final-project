@@ -1,0 +1,32 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Deploy
+  jobs:
+  - job: DeployToVM
+    displayName: Deploy to VM
+    steps:
+    - checkout: self
+
+    # SSH to the VM and setup the project directory and execute Docker commands
+    - task: SSH@0
+      inputs:
+        sshEndpoint: 'vm-ssh-connection'
+        runOptions: 'inline'
+        inlineScript: |
+          # Ensure the directory exists and cd into it
+          if [ ! -d "cc-final-project" ]; then
+            git clone https://github.com/muhammadhur2/cc-final-project cc-final-project
+          fi
+          cd cc-final-project
+          
+          # Pull the latest changes from the repository
+          git pull
+          
+          # Docker compose commands to stop, build, and start containers
+          docker compose down
+          docker compose up -d --build
